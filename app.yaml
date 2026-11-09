@@ -1,0 +1,9 @@
+command: ["python", "app.py"]
+
+env:
+  - name: DATABRICKS_WAREHOUSE_ID
+    valueFrom: sql-warehouse
+  - name: VIEW_CONTAS_RECEBER
+    value: data_analytics.contas_receber.vw_fato_financeiro_contas_receber
+  - name: CACHE_SEGUNDOS
+    value: "3600" 
