@@ -7,7 +7,7 @@ O QUE FAZ: Painel de Contas a Receber, layout v3 da Vera (5 abas: Resumo,
            - Base em memória, renovada de hora em hora em segundo plano.
            - Filtros na URL com parâmetros repetidos (canal, marca, cobrador,
              uf, operador; mcob = cobradora do Meu painel). Lista vazia = todos;
-             canal padrão 40 e 50. Cada combinação vira um JSON em cache.
+             canal padrão Franquia (40) e Multimarcas (50). Cada combinação vira um JSON em cache.
            - Exceções: o mapa (resumo.ufs) ignora UF; cobradoras ignora UF e
              operador.
            - Recebido = só status_titulo 'Liquidado'. Baixa sem Caixa = acordo.
@@ -26,6 +26,9 @@ HISTÓRICO: 05/11/2026 · v2.0–v2.2 · app sobre o template v11.
                         ranking e árvore pelo atraso real (vw_cr_eventos_titulo,
                         com canal e marca), calendário de dias úteis da
                         tb_calendario_recebimento, títulos completos no Meu painel.
+           10/11/2026 · v4.1 · canal agrupado: 40 = Franquia; 50 e 55 = Multimarcas;
+                        70, 76, vazio e demais = Outros (config.CANAL_GRUPO).
+                        A tabela de títulos mostra o canal exato do SAP.
 """
 
 import gzip
@@ -522,8 +525,19 @@ def marca_de(org):
     return config.MARCAS.get(str(org or ""), config.MARCA_PADRAO)
 
 
+CANAL_GRUPO = {str(k).strip(): str(v) for k, v in config.CANAL_GRUPO.items()}
+CANAL_OUTROS = str(config.CANAL_OUTROS)
+
+
+def canal_sap(c):
+    """Canal exato da view (vazio vira "")."""
+    s = str(c if c is not None else "").strip()
+    return txt(s[:-2] if s.endswith(".0") else s)
+
+
 def canal_cod(c):
-    return txt(str(c or "").strip())
+    """Grupo do canal: 40 Franquia; 50 e 55 Multimarcas; o resto (70, 76, vazio) Outros."""
+    return txt(CANAL_GRUPO.get(canal_sap(c), CANAL_OUTROS))
 
 
 def fmt_cnpj(c):
@@ -612,6 +626,7 @@ def montar_base():
         bloq = txt((r[ix["bloq"]] or "").upper())
         tit.append({
             "cli": cli, "cob": txt(r[ix["cob"]]), "canal": canal_cod(r[ix["canal"]]),
+            "csap": canal_sap(r[ix["canal"]]),
             "marca": marca_de(r[ix["org"]]), "uf": uf, "ufo": txt(r[ix["ufo"]]),
             "doc": r[ix["doc"]] or "", "item": r[ix["item"]] or "", "tipo": tipo,
             "emis": r[ix["emis"]] or venc, "venc": venc, "d": int(r[ix["dias"]]), "v": v, "bl": bloq,
@@ -663,7 +678,7 @@ def montar_base():
 def opcoes_de(tit):
     canais = sorted({t["canal"] for t in tit})
     return {
-        "canal": [[c, c] for c in canais],
+        "canal": [[c, config.CANAIS.get(c, c)] for c in canais],
         "marca": sorted({t["marca"] for t in tit}),
         "cobrador": sorted({t["cob"] for t in tit}, key=ordem_cob),
         "uf": sorted({t["uf"] for t in tit}, key=lambda n: (n == SEM_UF, n)),
@@ -919,7 +934,7 @@ def arvore_de(B, F, nome, Tc):
 def linha_titulo(B, t):
     L = B["lojas"].get(t["cli"], {})
     return [t["op"], str(t["cli"]), L.get("fant", ""), L.get("razao", ""), t["doc"], t["item"], t["tipo"],
-            "", "", "", t["emis"], t["venc"], t["d"], round(t["v"], 2), t["bl"], t["canal"], t["marca"],
+            "", "", "", t["emis"], t["venc"], t["d"], round(t["v"], 2), t["bl"], t["csap"] or "vazio", t["marca"],
             t["uf"], ORIGEM_UF.get(t["ufo"], t["ufo"]), L.get("cidade", ""), t["cob"]]
 
 
@@ -1201,7 +1216,7 @@ def saude():
     b = _cache["base"]
     return jsonify({
         "ok": True,
-        "versao_app": "4.0",
+        "versao_app": "4.1",
         "warehouse_configurado": bool(WAREHOUSE_ID),
         "template_encontrado": ARQUIVO_HTML.exists(),
         "marcador_no_template": ARQUIVO_HTML.exists() and MARCADOR_DADOS in template(),
