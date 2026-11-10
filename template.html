@@ -400,7 +400,14 @@ function mudou(){if(REAL)SUJO=true;else aplicar()}
 function fechar(){const ab=document.querySelector(".ms.open");if(ab)ab.classList.remove("open");if(SUJO){SUJO=false;aplicar()}}
 function montarFiltros(){
   const ch=document.getElementById("f_canal");ch.innerHTML=opts("canal").map(([v,t])=>`<label><input type="checkbox" value="${esc(v)}" ${F.canal.includes(v)?"checked":""}>${esc(t)}</label>`).join("");
-  ch.querySelectorAll("input").forEach(i=>i.onchange=()=>{const s=[...ch.querySelectorAll("input:checked")].map(x=>x.value);if(!s.length){i.checked=true;return}F.canal=s;aplicar()});
+  /* v4.1 (Stark): canal marca e depois aplica (botão Aplicar ou clique fora), sem recarregar a cada clique */
+  ch.onclick=e=>e.stopPropagation();
+  let okc=document.getElementById("f_canal_ok");
+  if(REAL&&!okc){okc=document.createElement("button");okc.id="f_canal_ok";okc.type="button";okc.className="btn";okc.textContent="Aplicar";okc.hidden=true;
+    okc.style.cssText="margin-left:6px;padding:4px 10px;font-size:12px;color:#F3F4F6;border-color:rgba(59,130,246,.5)";
+    ch.insertAdjacentElement("afterend",okc);okc.onclick=e=>{e.stopPropagation();SUJO=false;okc.hidden=true;aplicar()}}
+  ch.querySelectorAll("input").forEach(i=>i.onchange=()=>{const s=[...ch.querySelectorAll("input:checked")].map(x=>x.value);if(!s.length){i.checked=true;return}F.canal=s;
+    if(REAL){SUJO=true;okc.hidden=false}else aplicar()});
   Object.keys(MSDEF).forEach(k=>{const box=document.getElementById("ms_"+k);
     box.innerHTML=`<button class="sel msb" type="button"></button><div class="msp"><input type="search" placeholder="Buscar ${MSDEF[k].lab.toLowerCase()}"><div class="msa"><button type="button" data-a="all">Selecionar todos</button><button type="button" data-a="none">Limpar seleção</button></div><div class="msl"></div><div class="msc"></div>${REAL?'<button type="button" class="btn msok" style="width:100%;margin-top:8px;color:#F3F4F6;border-color:rgba(59,130,246,.5)">Aplicar</button>':""}</div>`;
     box.querySelector(".msb").onclick=e=>{e.stopPropagation();const o=box.classList.contains("open");fechar();if(!o){box.classList.add("open");msList(k);box.querySelector("input[type=search]").focus()}};
