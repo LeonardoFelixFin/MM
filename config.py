@@ -11,6 +11,8 @@ HISTÓRICO: 05/11/2026 · v2.0 · criação (app refeito com o template v11 da V
            06/11/2026 · Ritiele (rdantunes) entra em GESTORES.
            10/11/2026 · v4.0 · layout v3: sai AGRUPAR_SEM_OPERADOR (SEM OPERADOR
                         vira uma linha única no fim da lista, como no layout).
+           10/11/2026 · v4.1 · canais agrupados (CANAL_GRUPO): 40 Franquia;
+                        50 e 55 Multimarcas; 70, 76 e vazio Outros.
 """
 
 # Arquivo da página (contas_receber_oficial.html da Vera, sem alteração)
@@ -25,7 +27,6 @@ GESTORES = {
     "leonardo.santos@arezzo.com.br",
     "rdantunes@arezzo.com.br",
     "ritiele.antunes@arezzo.com.br",
-    "atmotta@arezzo.com.br",
 }
 
 # E-mail (minúsculas) -> códigos de cobrador (como aparecem em cobrador_codigo).
@@ -34,9 +35,18 @@ ACESSOS = {
     # "fulana@arezzo.com.br": ["001"],
 }
 
-# Canal ajustado -> nome exibido
+# Canal ajustado (exato da view) -> grupo usado no painel e nos filtros.
+# Qualquer canal fora desta lista (70, 76, vazio, outros) cai em CANAL_OUTROS.
+CANAL_GRUPO = {
+    "40": "40",   # Franquia
+    "50": "50",   # Multimarcas
+    "55": "50",   # Multimarcas
+}
+CANAL_OUTROS = "70"
+
+# Grupo -> nome exibido no filtro
 CANAIS = {
-    "40": "Franquias",
+    "40": "Franquia",
     "50": "Multimarcas",
     "70": "Outros",
 }
