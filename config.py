@@ -25,6 +25,7 @@ GESTORES = {
     "leonardo.santos@arezzo.com.br",
     "rdantunes@arezzo.com.br",
     "ritiele.antunes@arezzo.com.br",
+    "atmotta@arezzo.com.br",
 }
 
 # E-mail (minúsculas) -> códigos de cobrador (como aparecem em cobrador_codigo).
